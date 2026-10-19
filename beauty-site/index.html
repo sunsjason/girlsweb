@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拾光 · 人像摄影画廊</title>
+<meta name="description" content="拾光人像画廊：AI 生成的人像摄影作品，清新、时尚、旅拍、古风。">
+<style>
+  :root{
+    --bg:#111113; --panel:#1a1a1e; --card:#1f1f24; --ink:#ececec; --ink-soft:#9a9aa3;
+    --accent:#e8b4b4; --accent2:#c98f8f; --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+  header{padding:26px 0;border-bottom:1px solid #26262c;position:sticky;top:0;background:rgba(17,17,19,.9);backdrop-filter:blur(10px);z-index:20}
+  nav{display:flex;align-items:center;justify-content:space-between}
+  .logo{font-size:1.2rem;font-weight:800;letter-spacing:.15em;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .btn{background:transparent;border:1px solid #3a3a42;color:var(--ink-soft);padding:8px 18px;border-radius:999px;cursor:pointer;font-size:.88rem;transition:.2s;font-family:inherit}
+  .btn:hover,.btn.on{border-color:var(--accent);color:var(--accent)}
+
+  .hero{text-align:center;padding:70px 22px 40px}
+  .hero h1{font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:800;letter-spacing:.08em}
+  .hero h1 b{color:var(--accent);font-weight:800}
+  .hero p{color:var(--ink-soft);margin-top:12px;font-size:1rem}
+  .filters{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:36px 0 8px}
+
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;padding:36px 0 20px}
+  .ph{position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;background:var(--card);aspect-ratio:2/3;transition:.3s}
+  .ph:hover{transform:translateY(-5px);box-shadow:0 16px 36px rgba(0,0,0,.5)}
+  .ph img{width:100%;height:100%;object-fit:cover;display:block;transition:.4s}
+  .ph:hover img{transform:scale(1.04)}
+  .ph .meta{position:absolute;left:0;right:0;bottom:0;padding:36px 16px 14px;background:linear-gradient(transparent,rgba(0,0,0,.82));opacity:0;transition:.3s}
+  .ph:hover .meta{opacity:1}
+  .meta .t{font-weight:700;font-size:.98rem}
+  .meta .s{color:var(--ink-soft);font-size:.82rem}
+
+  /* 灯箱 */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:50;flex-direction:column;padding:20px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:min(88vw,720px);max-height:78vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+  .lb-cap{margin-top:14px;color:var(--ink-soft);font-size:.92rem;text-align:center}
+  .lb-close{position:absolute;top:18px;right:26px;font-size:2rem;color:#fff;background:none;border:none;cursor:pointer;line-height:1}
+  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:none;color:#fff;font-size:1.6rem;width:46px;height:46px;border-radius:50%;cursor:pointer}
+  .lb-prev{left:16px}.lb-next{right:16px}
+  .lb-nav:hover{background:rgba(255,255,255,.22)}
+
+  .note{background:var(--panel);border:1px solid #2c2c33;border-radius:var(--radius);padding:26px 28px;margin:30px 0 10px;font-size:.9rem;color:var(--ink-soft)}
+  .note b{color:var(--ink)}
+  footer{text-align:center;padding:34px 0 26px;color:#6f6f78;font-size:.82rem}
+  footer p{margin:4px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <div class="logo">拾<span>光</span> · 人像画廊</div>
+      <button class="btn" onclick="location.reload()">随机浏览</button>
+    </nav>
+  </div>
+</header>
+
+<div class="hero wrap">
+  <h1>记录每一束<b>落在脸上的光</b></h1>
+  <p>AI 生成人像摄影集 · 清新 / 时尚 / 逆光 / 古风 / 旅拍</p>
+  <div class="filters">
+    <button class="btn on" data-f="all" onclick="filter('all',this)">全部</button>
+    <button class="btn" data-f="fresh" onclick="filter('fresh',this)">清新日系</button>
+    <button class="btn" data-f="city" onclick="filter('city',this)">都市时尚</button>
+    <button class="btn" data-f="golden" onclick="filter('golden',this)">逆光黄昏</button>
+    <button class="btn" data-f="hanfu" onclick="filter('hanfu',this)">古风汉服</button>
+    <button class="btn" data-f="travel" onclick="filter('travel',this)">旅拍</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="gallery" id="gallery"></div>
+
+  <div class="note">
+    <b>📷 关于本站图片：</b>所有照片均为 AI 生成的虚构人物，非真实人物肖像，不含任何盗用素材。想换成你自己的图片？把你的照片（命名为 photo7.png、photo8.png…）放进 <b>images/</b> 文件夹，再在下方 data 列表里照格式加一行即可。上传图片请确保你拥有版权。
+  </div>
+</div>
+
+<footer>
+  <p>拾光 · Shiguang Gallery</p>
+  <p>© 2026 · AI 生成人像摄影作品 · 内容健康向上</p>
+</footer>
+
+<div class="lightbox" id="lb" onclick="if(event.target===this)closeLb()">
+  <button class="lb-close" onclick="closeLb()">×</button>
+  <button class="lb-nav lb-prev" onclick="event.stopPropagation();nav(-1)">‹</button>
+  <img id="lbImg" src="" alt="">
+  <div class="lb-cap" id="lbCap"></div>
+  <button class="lb-nav lb-next" onclick="event.stopPropagation();nav(1)">›</button>
+</div>
+
+<script>
+const data = [
+  {src:"images/photo1.png", cat:"fresh",  t:"春樱 · 白裙",        s:"清新日系 / 樱花树下 / 自然光"},
+  {src:"images/photo2.png", cat:"city",   t:"夜色外滩 · 风衣",     s:"都市街拍 / 霓虹氛围"},
+  {src:"images/photo3.png", cat:"golden", t:"海边黄昏 · 长裙",     s:"逆光人像 / 金色夕阳"},
+  {src:"images/photo4.png", cat:"fresh",  t:"午后书页 · 咖啡香",   s:"日系胶片 / 咖啡店窗边"},
+  {src:"images/photo5.png", cat:"hanfu",  t:"油纸伞 · 江南",       s:"古风汉服 / 园林春色"},
+  {src:"images/photo6.png", cat:"travel", t:"普罗旺斯 · 草帽",     s:"旅拍 / 薰衣草田"},
+];
+let shown = data.map((_,i)=>i), cur = 0;
+const g = document.getElementById('gallery');
+function render(){
+  g.innerHTML = "";
+  shown.forEach(i=>{
+    const d = data[i];
+    const el = document.createElement('div');
+    el.className = 'ph';
+    el.innerHTML = `<img src="${d.src}" alt="${d.t}" loading="lazy"><div class="meta"><div class="t">${d.t}</div><div class="s">${d.s}</div></div>`;
+    el.onclick = ()=>openLb(i);
+    g.appendChild(el);
+  });
+}
+function filter(cat, btn){
+  document.querySelectorAll('.filters .btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  shown = cat==='all' ? data.map((_,i)=>i) : data.map((_,i)=>i).filter(i=>data[i].cat===cat);
+  render();
+}
+function openLb(i){
+  cur = shown.indexOf(i); if(cur<0) cur=0;
+  updateLb();
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLb(){
+  document.getElementById('lb').classList.remove('open');
+  document.body.style.overflow='';
+}
+function nav(d){
+  cur = (cur + d + shown.length) % shown.length;
+  updateLb();
+}
+function updateLb(){
+  const d = data[shown[cur]];
+  document.getElementById('lbImg').src = d.src;
+  document.getElementById('lbCap').textContent = `${d.t} —— ${d.s}（${cur+1}/${shown.length}）`;
+}
+document.addEventListener('keydown', e=>{
+  if(!document.getElementById('lb').classList.contains('open')) return;
+  if(e.key==='ArrowLeft') nav(-1);
+  if(e.key==='ArrowRight') nav(1);
+  if(e.key==='Escape') closeLb();
+});
+render();
+</script>
+
+</body>
+</html>
